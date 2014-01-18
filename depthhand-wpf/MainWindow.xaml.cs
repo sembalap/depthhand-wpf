@@ -74,39 +74,13 @@ namespace depthhand_wpf
                         // Set the image we display to point to the bitmap where we'll put the image data
                         this.Image.Source = this.colorBitmap;
 
+                        
+
+
                         // Add an event handler to be called whenever there is new depth frame data
                         this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
 
-                        GrahamScan gs = new GrahamScan();
-                        List<Point> listPoints = new List<Point>();
-                        listPoints.Add(new Point(9, 1));
-                        listPoints.Add(new Point(4, 3));
-                        listPoints.Add(new Point(4, 5));
-                        listPoints.Add(new Point(3, 2));
-                        listPoints.Add(new Point(14, 2));
-                        listPoints.Add(new Point(4, 12));
-                        listPoints.Add(new Point(4, 10));
-                        listPoints.Add(new Point(5, 6));
-                        listPoints.Add(new Point(10, 2));
-                        listPoints.Add(new Point(1, 2));
-                        listPoints.Add(new Point(1, 10));
-                        listPoints.Add(new Point(5, 2));
-                        listPoints.Add(new Point(11, 2));
-                        listPoints.Add(new Point(4, 11));
-                        listPoints.Add(new Point(12, 4));
-                        listPoints.Add(new Point(3, 1));
-                        listPoints.Add(new Point(2, 6));
-                        listPoints.Add(new Point(2, 4));
-                        listPoints.Add(new Point(7, 8));
-                        listPoints.Add(new Point(5, 5));
-                        var stopwatch = new Stopwatch();
-                        stopwatch.Start();
-                        gs.convexHull(listPoints);
-                        stopwatch.Stop();
-                        float elapsed_time = stopwatch.ElapsedMilliseconds;
-                        Console.WriteLine("Elapsed time: {0} milliseconds", elapsed_time);
-                        //Console.WriteLine("Press enter to close...");
-                        Console.ReadLine();
+                        
                         StartStopButton.Content = "Stop";
                     }
                 }
@@ -154,14 +128,16 @@ namespace depthhand_wpf
 
                         pixeldata = new short[depthFrame.PixelDataLength];
                         depthFrame.CopyPixelDataTo(pixeldata);
-                        int x = 120; //specify x value here
-                        int y = 170; //specify y value here
+                        //int x = 120; //specify x value here
+                        //int y = 170; //specify y value here
 
-                        int w = depthFrame.Width;
-                        // this is distance in mm
-                        int d = pixeldata[x + y * w];
-                        d = d >> 3;
-                        label.Content = d;
+                        //int w = depthFrame.Width;
+                        //// this is distance in mm
+                        //int d = pixeldata[x + y * w];
+                        //d = d >> 3;
+                        //label.Content = d;
+
+                        
 
 
 
@@ -172,6 +148,7 @@ namespace depthhand_wpf
                         int minDepth = 825;
                         int maxDepth = 925;
 
+                        
 
 
                         // Convert the depth to RGB
@@ -208,6 +185,35 @@ namespace depthhand_wpf
                             ++colorPixelIndex;
 
                         }
+                        
+                        GrahamScan gs = new GrahamScan();
+                        List<Point> listPoints = new List<Point>();
+
+
+                        int w = depthFrame.Width;
+                        int h = depthFrame.Height;
+                        
+                        for (int x = 0; x < h; x++) 
+                        {                            
+                            for (int y = 0; y < w; y++)
+                            {                                
+                                    if (minDepth <  < maxDepth)
+                                    {
+                                        listPoints.Add(new Point(x, y));
+                                    }                             
+                            }   
+                        }                                            
+                        
+                        var stopwatch = new Stopwatch();
+                        stopwatch.Start();
+                        gs.convexHull(listPoints, label);
+
+                        stopwatch.Stop();
+                        float elapsed_time = stopwatch.ElapsedMilliseconds;
+                                                
+                        Console.WriteLine("Elapsed time: {0} milliseconds", elapsed_time);
+                        Console.WriteLine("Press enter to close...");
+                        Console.ReadLine();
 
                         // Write the pixel data into our bitmap
                         this.colorBitmap.WritePixels(
@@ -215,6 +221,7 @@ namespace depthhand_wpf
                             this.colorPixels,
                             this.colorBitmap.PixelWidth * sizeof(int),
                             0);
+                        
                     }
 
                 }
@@ -316,11 +323,12 @@ namespace depthhand_wpf
                     return arrSortedInt;
                 }
 
-                public void convexHull(List<Point> points)
+                public void convexHull(List<Point> points, Label label)
                 {
                     Console.WriteLine("# List of Point #");
                     foreach (Point value in points)
                     {
+                        
                         Console.Write("(" + value.getX() + "," + value.getY() + ") ");
                     }
                     Console.WriteLine();
@@ -369,10 +377,14 @@ namespace depthhand_wpf
                     }
                     Console.WriteLine();
                     Console.WriteLine("# Convex Hull #");
+                    string z = "";
                     foreach (Point value in result)
                     {
-                        Console.Write("(" + value.getX() + "," + value.getY() + ") ");
+                        z += "(" + value.getX() + " + " + value.getY() + ")" ;
+                        
+                        //Console.Write("(" + value.getX() + "," + value.getY() + ") ");
                     }
+                    label.Content = z;
                     Console.WriteLine();
                 }
 
@@ -383,3 +395,40 @@ namespace depthhand_wpf
     }
 }
 
+
+
+
+/*
+ * public class AllMethods
+{
+    public static void Method2()
+    {
+        // code here
+    }
+}
+
+class Caller
+{
+    public static void Main(string[] args)
+    {
+        AllMethods.Method2();
+    }
+}
+ * 
+ * 
+ * 
+ * public class MyClass
+{
+    public void InstanceMethod() 
+    { 
+        // ...
+    }
+}
+
+public static void Main(string[] args)
+{
+    var instance = new MyClass();
+    instance.InstanceMethod();
+}
+ * 
+*/
