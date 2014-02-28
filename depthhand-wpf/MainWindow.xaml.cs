@@ -75,11 +75,10 @@ namespace depthhand_wpf
                         this.Image.Source = this.colorBitmap;
 
                         
-
-
                         // Add an event handler to be called whenever there is new depth frame data
                         this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
 
+                        convexHull = new ConvexHull();
                         
                         StartStopButton.Content = "Stop";
                     }
@@ -97,7 +96,14 @@ namespace depthhand_wpf
                 }
             }
         }
-
+  //      private void pictureBox_Paint(object sender, PaintEventArgs e)
+  //      {
+  //          Rectangle ee = new Rectangle(10, 10, 30, 30);
+  //          using (Pen pen = new Pen(Color.FromRgb(244, 0, 0), 2))
+  //          {
+  //              e.Graphics.DrawRectangle(pen, ee);
+  //      }
+  //}
         
 
             /// <summary>
@@ -184,37 +190,8 @@ namespace depthhand_wpf
                             // If we were outputting BGRA, we would write alpha here.
                             ++colorPixelIndex;
 
-                        }
+                        }   
                         
-                        GrahamScan gs = new GrahamScan();
-                        List<Point> listPoints = new List<Point>();
-
-
-                        int w = depthFrame.Width;
-                        int h = depthFrame.Height;
-                        
-                        for (int x = 0; x < h; x++) 
-                        {                            
-                            for (int y = 0; y < w; y++)
-                            {                                
-                                    if (minDepth <  < maxDepth)
-                                    {
-                                        listPoints.Add(new Point(x, y));
-                                    }                             
-                            }   
-                        }                                            
-                        
-                        var stopwatch = new Stopwatch();
-                        stopwatch.Start();
-                        gs.convexHull(listPoints, label);
-
-                        stopwatch.Stop();
-                        float elapsed_time = stopwatch.ElapsedMilliseconds;
-                                                
-                        Console.WriteLine("Elapsed time: {0} milliseconds", elapsed_time);
-                        Console.WriteLine("Press enter to close...");
-                        Console.ReadLine();
-
                         // Write the pixel data into our bitmap
                         this.colorBitmap.WritePixels(
                             new Int32Rect(0, 0, this.colorBitmap.PixelWidth, this.colorBitmap.PixelHeight),
@@ -226,174 +203,16 @@ namespace depthhand_wpf
 
                 }
             }
-            public class Point
-            {
-                private int y;
-                private int x;
-                public Point(int _x, int _y)
-                {
-                    x = _x;
-                    y = _y;
-                }
-                public int getX()
-                {
-                    return x;
-                }
-                public int getY()
-                {
-                    return y;
-                }
-            }
-            public class GrahamScan
-            {
-                const int TURN_LEFT = 1;
-                const int TURN_RIGHT = -1;
-                const int TURN_NONE = 0;
-                public int turn(Point p, Point q, Point r)
-                {
-                    return ((q.getX() - p.getX()) * (r.getY() - p.getY()) - (r.getX() - p.getX()) * (q.getY() - p.getY())).CompareTo(0);
-                }
-
-                public void keepLeft(List<Point> hull, Point r)
-                {
-                    while (hull.Count > 1 && turn(hull[hull.Count - 2], hull[hull.Count - 1], r) != TURN_LEFT)
-                    {
-                        Console.WriteLine("Removing Point ({0}, {1}) because turning right ", hull[hull.Count - 1].getX(), hull[hull.Count - 1].getY());
-                        hull.RemoveAt(hull.Count - 1);
-                    }
-                    if (hull.Count == 0 || hull[hull.Count - 1] != r)
-                    {
-                        Console.WriteLine("Adding Point ({0}, {1})", r.getX(), r.getY());
-                        hull.Add(r);
-                    }
-                    Console.WriteLine("# Current Convex Hull #");
-                    foreach (Point value in hull)
-                    {
-                        Console.Write("(" + value.getX() + "," + value.getY() + ") ");
-                    }
-                    Console.WriteLine();
-                    Console.WriteLine();
-
-                }
-
-                public double getAngle(Point p1, Point p2)
-                {
-                    float xDiff = p2.getX() - p1.getX();
-                    float yDiff = p2.getY() - p1.getY();
-                    return Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
-                }
-
-                public List<Point> MergeSort(Point p0, List<Point> arrPoint)
-                {
-                    if (arrPoint.Count == 1)
-                    {
-                        return arrPoint;
-                    }
-                    List<Point> arrSortedInt = new List<Point>();
-                    int middle = (int)arrPoint.Count / 2;
-                    List<Point> leftArray = arrPoint.GetRange(0, middle);
-                    List<Point> rightArray = arrPoint.GetRange(middle, arrPoint.Count - middle);
-                    leftArray = MergeSort(p0, leftArray);
-                    rightArray = MergeSort(p0, rightArray);
-                    int leftptr = 0;
-                    int rightptr = 0;
-                    for (int i = 0; i < leftArray.Count + rightArray.Count; i++)
-                    {
-                        if (leftptr == leftArray.Count)
-                        {
-                            arrSortedInt.Add(rightArray[rightptr]);
-                            rightptr++;
-                        }
-                        else if (rightptr == rightArray.Count)
-                        {
-                            arrSortedInt.Add(leftArray[leftptr]);
-                            leftptr++;
-                        }
-                        else if (getAngle(p0, leftArray[leftptr]) < getAngle(p0, rightArray[rightptr]))
-                        {
-                            arrSortedInt.Add(leftArray[leftptr]);
-                            leftptr++;
-                        }
-                        else
-                        {
-                            arrSortedInt.Add(rightArray[rightptr]);
-                            rightptr++;
-                        }
-                    }
-                    return arrSortedInt;
-                }
-
-                public void convexHull(List<Point> points, Label label)
-                {
-                    Console.WriteLine("# List of Point #");
-                    foreach (Point value in points)
-                    {
-                        
-                        Console.Write("(" + value.getX() + "," + value.getY() + ") ");
-                    }
-                    Console.WriteLine();
-                    Console.WriteLine();
-
-                    Point p0 = null;
-                    foreach (Point value in points)
-                    {
-                        if (p0 == null)
-                            p0 = value;
-                        else
-                        {
-                            if (p0.getY() > value.getY())
-                                p0 = value;
-                        }
-                    }
-                    List<Point> order = new List<Point>();
-                    foreach (Point value in points)
-                    {
-                        if (p0 != value)
-                            order.Add(value);
-                    }
-
-                    order = MergeSort(p0, order);
-                    Console.WriteLine("# Sorted points based on angle with point p0 ({0},{1})#", p0.getX(), p0.getY());
-                    foreach (Point value in order)
-                    {
-                        Console.WriteLine("(" + value.getX() + "," + value.getY() + ") : {0}", getAngle(p0, value));
-                    }
-                    List<Point> result = new List<Point>();
-                    result.Add(p0);
-                    result.Add(order[0]);
-                    result.Add(order[1]);
-                    order.RemoveAt(0);
-                    order.RemoveAt(0);
-                    Console.WriteLine("# Current Convex Hull #");
-                    foreach (Point value in result)
-                    {
-                        Console.Write("(" + value.getX() + "," + value.getY() + ") ");
-                    }
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    foreach (Point value in order)
-                    {
-                        keepLeft(result, value);
-                    }
-                    Console.WriteLine();
-                    Console.WriteLine("# Convex Hull #");
-                    string z = "";
-                    foreach (Point value in result)
-                    {
-                        z += "(" + value.getX() + " + " + value.getY() + ")" ;
-                        
-                        //Console.Write("(" + value.getX() + "," + value.getY() + ") ");
-                    }
-                    label.Content = z;
-                    Console.WriteLine();
-                }
 
 
-        }
+
+
+            internal ConvexHull convexHull { get; set; }
+    }
 
 
     }
-}
+
 
 
 

@@ -5,11 +5,9 @@
     <Grid>
         <Canvas x:Name="imageCanvas" HorizontalAlignment="Left" Height="500" Margin="10,10,0,0" VerticalAlignment="Top" Width="695">
             <Label x:Name="label" Content="z" Canvas.Left="25" Canvas.Top="278" Width="326"/>
-            <Label x:Name="label1" Content="Label" Canvas.Left="25" Canvas.Top="312" Width="646" Height="78"/>
         </Canvas>
         <Viewbox HorizontalAlignment="Left" Height="240" VerticalAlignment="Top" Width="320" Margin="35,29,0,0"/>
         <Image x:Name="Image" HorizontalAlignment="Left" Height="240" Margin="35,29,0,0" VerticalAlignment="Top" Width="320"/>
         <Button x:Name="StartStopButton" Content="Start" HorizontalAlignment="Left" Margin="149,480,0,0" VerticalAlignment="Top" Width="75" Click="StartStopButton_Click"/>
-        <Label x:Name="label2" Content="Label2" HorizontalAlignment="Left" Margin="35,408,0,0" VerticalAlignment="Top" Width="546"/>
     </Grid>
 </Window>
